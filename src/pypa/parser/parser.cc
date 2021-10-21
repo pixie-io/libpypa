@@ -1560,6 +1560,10 @@ bool argument(State & s, AstExpr & ast) {
         AstKeywordPtr ptr;
         location(s, create(ptr));
         ast = ptr;
+        if (first->type != AstType::Name) {
+          syntax_error(s, ast, "Expected identifier before `=` in keyword argument");
+          return false;
+        }
         ptr->name = first;
         if(!test(s, ptr->value)) {
             syntax_error(s, ast, "Expected expression after `=`");
