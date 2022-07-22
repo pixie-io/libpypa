@@ -1766,7 +1766,13 @@ bool expr_stmt(State & s, AstStmt & ast) {
         AstBinOpType op{};
         if(augassign(s, op)) {
             switch(target->type) {
-            case AstType::Name:
+            case AstType::Name: {
+                auto name = std::static_pointer_cast<AstName>(target);
+                if (disallowed_names.find(name->id) != disallowed_names.end()) {
+                    syntax_error(s, target, std::string(absl::Substitute("can't assign to $0", name->id)).c_str());
+                    return false;
+                }
+            }
             case AstType::Attribute:
             case AstType::Subscript:
                 break;
