@@ -1772,6 +1772,7 @@ bool expr_stmt(State & s, AstStmt & ast) {
                     syntax_error(s, target, std::string(absl::Substitute("can't assign to $0", name->id)).c_str());
                     return false;
                 }
+                break;
             }
             case AstType::Attribute:
             case AstType::Subscript:
@@ -1831,6 +1832,7 @@ bool expr_stmt(State & s, AstStmt & ast) {
                             syntax_error(s, target, std::string(absl::Substitute("can't assign to $0", name->id)).c_str());
                             return false;
                         }
+                        break;
                     }
                     case AstType::Attribute:
                     case AstType::Subscript:
