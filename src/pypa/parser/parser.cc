@@ -14,6 +14,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <unordered_set>
 
 // NOTE(zasgar) Disabling GMP.
 //#include <gmp.h>
@@ -24,6 +25,7 @@
 #include <pypa/ast/context_assign.hh>
 
 #include "absl/strings/numbers.h"
+#include "absl/strings/substitute.h"
 
 namespace pypa {
 
@@ -1752,6 +1754,7 @@ bool funcdef(State & s, AstStmt & ast) {
     return guard.commit();
 }
 
+static std::unordered_set<std::string> disallowed_names{"True", "False", "None"};
 bool expr_stmt(State & s, AstStmt & ast) {
     StateGuard guard(s);
     AstExpressionStatementPtr ptr;
@@ -1763,7 +1766,14 @@ bool expr_stmt(State & s, AstStmt & ast) {
         AstBinOpType op{};
         if(augassign(s, op)) {
             switch(target->type) {
-            case AstType::Name:
+            case AstType::Name: {
+                auto name = std::static_pointer_cast<AstName>(target);
+                if (disallowed_names.find(name->id) != disallowed_names.end()) {
+                    syntax_error(s, target, std::string(absl::Substitute("can't assign to $0", name->id)).c_str());
+                    return false;
+                }
+                break;
+            }
             case AstType::Attribute:
             case AstType::Subscript:
                 break;
@@ -1816,7 +1826,14 @@ bool expr_stmt(State & s, AstStmt & ast) {
                     case AstType::ListComp:
                         syntax_error(s, target, "can't assign to list comprehension");
                         return false;
-                    case AstType::Name:
+                    case AstType::Name: {
+                        auto name = std::static_pointer_cast<AstName>(target);
+                        if (disallowed_names.find(name->id) != disallowed_names.end()) {
+                            syntax_error(s, target, std::string(absl::Substitute("can't assign to $0", name->id)).c_str());
+                            return false;
+                        }
+                        break;
+                    }
                     case AstType::Attribute:
                     case AstType::Subscript:
                     case AstType::List:
